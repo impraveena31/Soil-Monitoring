@@ -1,121 +1,63 @@
-Soil Moisture Monitoring System with ESP32
-Overview
-This project involves using an ESP32 microcontroller to create a soil moisture monitoring system that can be accessed over a Wi-Fi network. The system reads moisture data from a 2-pin analog soil moisture sensor, processes the data, and displays it on a web page. The system also provides real-time feedback, indicating whether the soil needs watering based on the moisture level.
+# Soil Moisture Monitoring System - ESP32
 
-Key Features:
-Real-time soil moisture data display via a web interface.
+## Overview
+This project is a soil moisture monitoring system using an ESP32 microcontroller and a 2-pin soil moisture sensor. The system connects to a WiFi network, reads soil moisture levels, and serves the data through a web server, displaying real-time information on the soil condition (whether it needs watering or is good).
 
-Wi-Fi-enabled for remote monitoring.
+## Components Needed
+- **ESP32 Development Board**
+- **2-pin Soil Moisture Sensor**
+- **10k Ohm Resistor**
+- **Jumper Wires**
+- **Breadboard (Optional)**
 
-The analog soil moisture sensor provides continuous feedback about soil moisture.
+## Circuit Diagram
+### Soil Moisture Sensor Connection
+| **Component**           | **ESP32 Pin**       | **Soil Moisture Sensor Pin** | **Description**                              |
+|-------------------------|---------------------|-----------------------------|----------------------------------------------|
+| **Soil Moisture Sensor**| VCC                 | VCC                         | Connect the VCC pin of the sensor to the **3.3V** pin of the ESP32 for power supply. |
+| **Soil Moisture Sensor**| GND                 | GND                         | Connect the GND pin of the sensor to the **GND** pin of the ESP32 for grounding. |
+| **Soil Moisture Sensor**| SIGNAL              | Signal Pin                  | Connect the Signal pin of the sensor to **GPIO34 (ADC)** of the ESP32 for analog input. |
+| **Resistor (10kΩ)**     | Between SIGNAL Pin  | GND                         | Connect a 10kΩ resistor between the **Signal Pin** and **GND** to form a voltage divider. This helps ensure the sensor's output voltage is readable by the ADC pin of the ESP32. |
 
-Provides a gauge-style visual for the moisture level.
+### Circuit Connections:
+1. **VCC (Soil Moisture Sensor)** → **3.3V (ESP32)**
+2. **GND (Soil Moisture Sensor)** → **GND (ESP32)**
+3. **Signal Pin (Soil Moisture Sensor)** → **GPIO34 (ESP32)**
+4. **10kΩ Resistor** → Connect between **Signal Pin** and **GND** (Ground).
 
-Status updates: The system shows whether the soil is in a healthy condition or needs watering.
+## Software Setup
 
-Components Used
-1. ESP32 Microcontroller
-Purpose: The ESP32 is a low-power, high-performance microcontroller with integrated Wi-Fi and Bluetooth capabilities. It serves as the central processing unit in this project to collect sensor data, handle Wi-Fi communication, and serve the web page.
+### Libraries Required
+- **WiFi.h**: For connecting to WiFi.
+- **WebServer.h**: To handle HTTP requests and serve web pages.
 
-2. 2-pin Soil Moisture Sensor
-Purpose: This sensor measures the moisture level of the soil and provides an analog voltage signal that corresponds to the soil's moisture content. The sensor is connected to an analog-to-digital converter (ADC) pin on the ESP32 for reading the moisture level.
+### WiFi Credentials
+Make sure to replace the default WiFi credentials in the code with your own:
+```cpp
+const char* ssid = "YOUR_SSID";
+const char* password = "YOUR_PASSWORD";
 
-3. Resistor (R)
-Purpose: A 10kΩ pull-down resistor is used between the analog output pin of the sensor and ground (GND). This ensures a stable voltage reading and prevents floating values when the sensor is not active.
+## Web Interface
+The web interface displays the current soil moisture level as a percentage, updating every second. The status is shown as either "Soil is good" or "Needs Watering" based on the moisture level.
 
-4. Power Supply
-Purpose: The ESP32 requires a 3.3V or 5V supply, which powers the microcontroller and the connected soil moisture sensor.
+## Functionality
+- **WiFi Setup**: The ESP32 will connect to the WiFi network using the provided credentials.
+- **Soil Moisture Calculation**: The analog reading from the soil moisture sensor is converted to a percentage.
+- **Web Server**: The ESP32 serves a webpage that displays the current moisture level and status.
+- **Serial Monitoring**: The system provides real-time serial output, showing raw ADC values and calculated moisture percentage.
 
-Theory and Engineering Concepts
-Soil Moisture Sensor: Working Principle
-The soil moisture sensor typically works on the principle of resistivity or capacitance to measure the moisture content in the soil:
+## Accessing the Web Server
+Once connected to WiFi, the ESP32 will output its IP address to the Serial Monitor. Open this IP address in a browser to view the moisture levels in real-time.
 
-Resistive Type Sensors (commonly used in this project):
+## Code Explanation
+- **WiFi Connection**: The `connectWiFi()` function connects the ESP32 to your WiFi network.
+- **Soil Moisture Calculation**: The soil moisture level is calculated by reading the analog value from GPIO34. The formula used for calculation is:
+    ```cpp
+    moistureLevel = (sensorValue / 4095.0) * 100;
+    ```
+    where `sensorValue` is the raw ADC value, and `4095` is the maximum value for a 12-bit ADC.
+- **Web Interface**: The ESP32 serves a webpage with the current moisture level and a visual gauge indicating the soil condition. The page updates every second.
+- **Serial Output Control**: You can stop or start the serial output by sending "STOP" or "START" commands via the Serial Monitor.
 
-These sensors consist of two conductive probes that are placed in the soil.
-
-The resistance between the probes decreases as the moisture content in the soil increases, because water is a good conductor of electricity.
-
-The sensor outputs an analog voltage that is proportional to the resistance between the probes.
-
-Capacitive Type Sensors (alternative):
-
-These sensors measure the capacitance between two conductive plates, where the capacitance changes based on the moisture content of the soil.
-
-In this project, we are using the resistive type soil moisture sensor, which provides an analog voltage output that is fed into the ADC (Analog to Digital Converter) pin of the ESP32.
-
-Analog-to-Digital Conversion
-The ESP32’s ADC (Analog-to-Digital Converter) reads the analog voltage from the soil moisture sensor and converts it to a digital value that can be processed by the microcontroller.
-
-ADC Characteristics: The ESP32 has a 12-bit ADC, meaning the analog input is converted into a digital value between 0 to 4095 (corresponding to the voltage range of 0V to 3.3V).
-
-Formula for Moisture Calculation:
-
-cpp
-Copy
-Edit
-moistureLevel = (sensorValue / 4095.0) * 100;
-The sensorValue is the raw ADC value (between 0 and 4095), and dividing it by 4095.0 gives the normalized value in the range 0 to 1. By multiplying this by 100, we convert it to a percentage.
-
-Wi-Fi Communication
-The ESP32 is used to connect the system to a Wi-Fi network.
-
-Once connected, the ESP32 hosts a web server that allows remote monitoring of the soil moisture levels.
-
-Web Server: The ESP32’s web server listens on port 80 and serves HTML content to clients (e.g., web browsers) that connect to it.
-
-Client-side JavaScript: The web page uses JavaScript to fetch the latest soil moisture data from the server every second and update the page dynamically.
-
-Application Functionality
-1. Wi-Fi Setup:
-The ESP32 connects to a Wi-Fi network using the SSID (network name) and password.
-
-It checks the connection status and prints the IP address to the serial monitor upon successful connection.
-
-2. Reading Soil Moisture:
-The soil moisture sensor continuously provides an analog signal, which is read by the ESP32’s ADC pin (GPIO 34 in the code).
-
-The ADC value is processed to calculate the moisture percentage.
-
-3. Web Server:
-A simple HTML page is served, displaying the soil moisture data in a gauge-style format.
-
-JavaScript is used to fetch the data from the ESP32 every second and update the page.
-
-The moisture status is displayed as either “Soil is good!” or “Needs Watering!” based on the moisture level.
-
-4. Control via Serial Monitor:
-The system allows you to control whether serial output is active or not by sending START or STOP commands via the serial monitor.
-
-Hardware Connections
-
-Soil Moisture Sensor Pin	ESP32 Pin	Connection Description
-VCC (Power)	3.3V or 5V	Connects the power pin of the soil moisture sensor to the 3.3V or 5V pin on the ESP32.
-GND (Ground)	GND	Connects the ground pin of the soil moisture sensor to the GND on the ESP32.
-Analog Output	GPIO 34	Connects the analog output pin from the sensor to the ADC pin on the ESP32 (GPIO 34).
-Resistor (R)	Between Analog Output and GND	A 10kΩ resistor is placed between the analog output pin and ground for signal conditioning.
-Software Explanation
-1. Wi-Fi Connection:
-In the connectWiFi() function, the ESP32 attempts to connect to the specified Wi-Fi network. The status of the connection is printed to the serial monitor.
-
-2. Soil Moisture Calculation:
-In the loop() function, the analogRead() function reads the raw value from the sensor connected to GPIO 34. This value is then converted into a percentage using the formula mentioned above.
-
-3. Web Server:
-The WebServer object listens for HTTP requests and responds with the appropriate data.
-
-The /data.txt route sends the current moisture level as a text string.
-
-The root route (/) sends an HTML page containing a gauge-style visualization of the moisture level and a status message.
-
-Future Enhancements
-More Sensors: Adding more sensors to monitor multiple plants.
-
-Email Alerts: Send notifications via email when the moisture level falls below a certain threshold.
-
-Mobile App Integration: Create a mobile app to control and monitor the system more effectively.
-
-Data Logging: Store historical moisture data in a cloud database for long-term analysis and trends.
-
-Conclusion
-This project demonstrates the use of an ESP32 to build a Wi-Fi-enabled soil moisture monitoring system that can be accessed and controlled remotely. By understanding the electronics behind the soil moisture sensor and its integration with the ESP32, you can build a variety of IoT-based agricultural applications for smart farming.
+## Conclusion
+This system allows you to monitor soil moisture levels remotely, making it ideal for applications such as automated irrigation systems or garden monitoring.
