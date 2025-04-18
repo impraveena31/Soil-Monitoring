@@ -33,7 +33,7 @@ This project is a soil moisture monitoring system using an ESP32 microcontroller
 
 ### WiFi Credentials
 Make sure to replace the default WiFi credentials in the code with your own:
-```cpp
+
 const char* ssid = "YOUR_SSID";
 const char* password = "YOUR_PASSWORD";
 
